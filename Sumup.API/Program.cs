@@ -1,3 +1,7 @@
+﻿
+using Microsoft.EntityFrameworkCore;
+using System;
+using Sumup.Infrastructure.Data;
 
 namespace Sumup.API
 {
@@ -8,6 +12,9 @@ namespace Sumup.API
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            // PostgreSQL ve EF Core Kaydı
+            builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
