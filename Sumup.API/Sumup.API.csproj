@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>6d4027f2-34ee-4b27-bcc3-bfec741f897a</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,10 +22,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Sumup.Core\Sumup.Core.csproj" />
     <ProjectReference Include="..\Sumup.Infrastructure\Sumup.Infrastructure.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Controllers\" />
   </ItemGroup>
 
 </Project>

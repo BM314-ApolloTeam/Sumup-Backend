@@ -1,7 +1,11 @@
 ﻿
 using Microsoft.EntityFrameworkCore;
-using System;
+using Sumup.Core.Configurations;
+using Sumup.Core.Interfaces;
 using Sumup.Infrastructure.Data;
+using Sumup.Infrastructure.Service;
+using Sumup.Infrastructure.Services;
+using System;
 
 namespace Sumup.API
 {
@@ -15,6 +19,11 @@ namespace Sumup.API
             // PostgreSQL ve EF Core Kaydı
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.AddHttpClient<IGoogleCalendarService, GoogleCalendarService>();
+            builder.Services.AddHttpClient<IGoogleTaskService, GoogleTasksService>();
+
+            // Google API Ayarlarını Bind Etme
+            builder.Services.Configure<GoogleApiSettings>(builder.Configuration.GetSection("GoogleApi"));
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
