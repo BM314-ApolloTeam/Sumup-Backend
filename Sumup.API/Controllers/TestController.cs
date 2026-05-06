@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Sumup.Core.Interfaces;
+using System;
+using System.Threading.Tasks;
 
 namespace Sumup.API.Controllers
 {
@@ -9,12 +11,14 @@ namespace Sumup.API.Controllers
     {
         private readonly IGoogleCalendarService _calendarService;
         private readonly IGoogleTaskService _taskService;
+        private readonly IWeatherService _weatherService;
 
         // Dependency Injection ile her iki servisimizi de çağırıyoruz
-        public TestController(IGoogleCalendarService calendarService, IGoogleTaskService taskService)
+        public TestController(IGoogleCalendarService calendarService, IGoogleTaskService taskService, IWeatherService weatherService)
         {
             _calendarService = calendarService;
             _taskService = taskService;
+            _weatherService = weatherService;
         }
 
         [HttpGet("google-data")]
@@ -36,6 +40,13 @@ namespace Sumup.API.Controllers
                 CalendarEvents = events,
                 Tasks = tasks
             });
+        }
+
+        [HttpGet("weather")]
+        public async Task<IActionResult> GetWeather([FromQuery] string city = "Ankara")
+        {
+            var weatherInfo = await _weatherService.GetDailyWeatherAsync(city);
+            return Ok(new { Message = weatherInfo });
         }
     }
 }

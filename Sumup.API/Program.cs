@@ -21,9 +21,11 @@ namespace Sumup.API
                 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
             builder.Services.AddHttpClient<IGoogleCalendarService, GoogleCalendarService>();
             builder.Services.AddHttpClient<IGoogleTaskService, GoogleTasksService>();
+            builder.Services.AddHttpClient<IWeatherService, OpenWeatherMapService>();
 
             // Google API Ayarlarını Bind Etme
             builder.Services.Configure<GoogleApiSettings>(builder.Configuration.GetSection("GoogleApi"));
+            builder.Services.Configure<WeatherApiSettings>(builder.Configuration.GetSection("WeatherApi"));
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
