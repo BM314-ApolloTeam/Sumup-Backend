@@ -21,9 +21,15 @@ namespace Sumup.Infrastructure.Services
         {
             var allEvents = new List<string>();
 
-            // Zaman sınırlarını belirliyoruz (Hedef günün başlangıcı ve bitişi)
-            var timeMin = targetDate.ToString("yyyy-MM-ddT00:00:00Z");
-            var timeMax = targetDate.ToString("yyyy-MM-ddT23:59:59Z");
+            var todayLocal = DateTime.Now.Date; // Bugün 00:00:00
+            var tomorrowLocal = todayLocal.AddDays(1); // Yarın 00:00:00
+            var dayAfterTomorrowLocal = todayLocal.AddDays(2); // Yarından sonraki gün 00:00:00 (Sınırı kapatmak için)
+
+            // Google'ın anladığı RFC3339 formatına (UTC) tam dönüşüm
+            // Bugün yerel 00:00'ın UTC karşılığı (Ankara için bir önceki gün 21:00'dır)
+            string timeMin = todayLocal.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ");
+            // Yarın yerel 23:59'un UTC karşılığı için 'Yarından sonraki gün 00:00' sınırını kullanıyoruz
+            string timeMax = dayAfterTomorrowLocal.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ");
 
             // 1. AŞAMA: Kullanıcının sahip olduğu tüm takvimleri listele
             var calendarListRequest = new HttpRequestMessage(HttpMethod.Get, "https://www.googleapis.com/calendar/v3/users/me/calendarList");
@@ -60,13 +66,31 @@ namespace Sumup.Infrastructure.Services
                         {
                             var summary = ev.TryGetProperty("summary", out var s) ? s.GetString() : "İsimsiz Etkinlik";
 
-                            // Örnek: "[TÜRKSAT] Proje Toplantısı"
-                            allEvents.Add($"[{calendarTitle}] {summary}");
+                            // Etkinliğin saatini ve gününü bulma
+                            string dayLabel = "";
+                            if (ev.TryGetProperty("start", out var startNode))
+                            {
+                                // dateTime varsa saatli, date varsa tüm günlük etkinliktir
+                                string dateStr = startNode.TryGetProperty("dateTime", out var dt)
+                                    ? dt.GetString()
+                                    : startNode.GetProperty("date").GetString();
+
+                                // Google'dan gelen UTC zamanı yerel saate çevirip öyle karşılaştırıyoruz
+                                var eventDate = DateTime.Parse(dateStr).ToLocalTime().Date;
+
+                                if (eventDate == todayLocal) dayLabel = " [Bugün]";
+                                else if (eventDate == tomorrowLocal) dayLabel = " [Yarın]";
+                            }
+
+                            // Eğer etiket boş kaldıysa (yani bugün veya yarın değilse) listeye ekleme
+                            if (!string.IsNullOrEmpty(dayLabel))
+                            {
+                                allEvents.Add($"[{calendarTitle}]{dayLabel} {summary}");
+                            }
                         }
                     }
                 }
             }
-
             return allEvents;
         }
     }
