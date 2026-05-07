@@ -21,50 +21,35 @@ namespace Sumup.Infrastructure.Service
             _settings = options.Value;
         }
 
-        public async Task<string> GenerateSummaryAsync(List<string> calendarEvents, List<string> tasks, string userPreferences)
+        public async Task<string> GenerateSummaryAsync(List<string> calendarEvents, List<string> tasks, string userPreferences, string weatherInfo)
         {
             if (string.IsNullOrEmpty(_settings.ApiKey))
             {
                 return "Gemini API Key is not configured.";
             }
 
-            var endpoint = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={_settings.ApiKey}";
-
+            // 2.5 Flash serisi hem çok hızlıdır hem de şu an 3.1 kadar yoğun değildir.
+            var endpoint = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={_settings.ApiKey}";
             // Constructing the prompt based on the inputs
             var promptBuilder = new StringBuilder();
-            promptBuilder.AppendLine("Lütfen aşağıdaki takvim etkinlikleri, görevler ve kişisel tercihleri kullanarak günün bir özetini ve planlamasını oluştur:");
-            promptBuilder.AppendLine();
+            promptBuilder.AppendLine("Sen profesyonel, enerjik ve motive edici bir kişisel asistan ve podcast sunucususun.");
+            promptBuilder.AppendLine($"Bugünün Tarihi: {DateTime.Now.ToString("dd MMMM yyyy dddd")}");
+            promptBuilder.AppendLine($"\n[HAVA DURUMU]:\n{weatherInfo}");
 
-            promptBuilder.AppendLine("Kişisel Tercihler:");
-            promptBuilder.AppendLine(string.IsNullOrWhiteSpace(userPreferences) ? "Belirtilmedi." : userPreferences);
-            promptBuilder.AppendLine();
+            promptBuilder.AppendLine("\n[TAKVİM ETKİNLİKLERİ]:");
+            promptBuilder.AppendLine(calendarEvents.Any() ? string.Join("\n", calendarEvents) : "Yakın zamanda planlanmış etkinlik yok.");
 
-            promptBuilder.AppendLine("Takvim Etkinlikleri:");
-            if (calendarEvents == null || !calendarEvents.Any())
-            {
-                promptBuilder.AppendLine("- Etkinlik bulunamadı.");
-            }
-            else
-            {
-                foreach (var ev in calendarEvents)
-                {
-                    promptBuilder.AppendLine($"- {ev}");
-                }
-            }
-            promptBuilder.AppendLine();
+            promptBuilder.AppendLine("\n[GÖREVLER]:");
+            promptBuilder.AppendLine(tasks.Any() ? string.Join("\n", tasks) : "Aktif görev bulunmuyor.");
 
-            promptBuilder.AppendLine("Görevler:");
-            if (tasks == null || !tasks.Any())
-            {
-                promptBuilder.AppendLine("- Görev bulunamadı.");
-            }
-            else
-            {
-                foreach (var task in tasks)
-                {
-                    promptBuilder.AppendLine($"- {task}");
-                }
-            }
+            promptBuilder.AppendLine($"\n[KULLANICI ÖZEL TERCİHLERİ]:\n{(string.IsNullOrWhiteSpace(userPreferences) ? "Yok" : userPreferences)}");
+
+            promptBuilder.AppendLine("\nTALİMATLAR:");
+            promptBuilder.AppendLine("- Bir radyo sunucusu gibi akıcı, samimi ve konuşma dilinde bir metin hazırla.");
+            promptBuilder.AppendLine("- Hava durumuna göre (sıcaklık, rüzgar vb.) samimi bir tavsiyede bulun.");
+            promptBuilder.AppendLine("- Takvimdeki [Bugün] ve [Yarın] etiketlerini kullanarak zaman vurgusu yap.");
+            promptBuilder.AppendLine("- Önemli veya gecikmiş görevleri tatlı bir dille hatırlat.");
+
 
             var requestBody = new
             {

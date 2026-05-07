@@ -10,17 +10,20 @@ namespace Sumup.API.Controllers
     {
         private readonly IGoogleCalendarService _calendarService;
         private readonly IGoogleTaskService _taskService;
+        private readonly IWeatherService _weatherService;
         private readonly IGeminiService _geminiService;
         private readonly IElevenLabsService _elevenLabsService;
 
         public SummaryController(
             IGoogleCalendarService calendarService,
             IGoogleTaskService taskService,
+            IWeatherService weatherService,
             IGeminiService geminiService,
             IElevenLabsService elevenLabsService)
         {
             _calendarService = calendarService;
             _taskService = taskService;
+            _weatherService = weatherService;
             _geminiService = geminiService;
             _elevenLabsService = elevenLabsService;
         }
@@ -30,6 +33,7 @@ namespace Sumup.API.Controllers
             public string Token { get; set; } = string.Empty;
             public string Preferences { get; set; } = string.Empty;
             public string VoiceId { get; set; } = string.Empty;
+            public string City { get; set; } = "Ankara"; // Varsayılan şehir
         }
 
         [HttpPost("generate")]
@@ -40,6 +44,8 @@ namespace Sumup.API.Controllers
                 return BadRequest("Lütfen Google Access Token'ınızı girin.");
             }
 
+            var weather = await _weatherService.GetDailyWeatherAsync(request.City);
+
             // Bugünün takvim etkinliklerini çek
             var events = await _calendarService.GetDailyEventsAsync(request.Token, System.DateTime.UtcNow);
 
@@ -47,7 +53,7 @@ namespace Sumup.API.Controllers
             var tasks = await _taskService.GetDailyTasksAsync(request.Token);
 
             // Gemini ile özeti oluştur
-            var summary = await _geminiService.GenerateSummaryAsync(events, tasks, request.Preferences);
+            var summary = await _geminiService.GenerateSummaryAsync(events, tasks, request.Preferences, weather);
 
             string? audioBase64 = null;
             if (!string.IsNullOrEmpty(request.VoiceId))
