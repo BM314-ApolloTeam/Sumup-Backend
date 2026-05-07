@@ -1,4 +1,4 @@
-﻿
+
 using Microsoft.EntityFrameworkCore;
 using Sumup.Core.Configurations;
 using Sumup.Core.Interfaces;
@@ -24,6 +24,11 @@ namespace Sumup.API
 
             // Google API Ayarlarını Bind Etme
             builder.Services.Configure<GoogleApiSettings>(builder.Configuration.GetSection("GoogleApi"));
+            builder.Services.Configure<GeminiApiSettings>(builder.Configuration.GetSection("GeminiApi"));
+            builder.Services.Configure<ElevenLabsApiSettings>(builder.Configuration.GetSection("ElevenLabsApi"));
+
+            builder.Services.AddHttpClient<IGeminiService, GeminiService>();
+            builder.Services.AddHttpClient<IElevenLabsService, ElevenLabsService>();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

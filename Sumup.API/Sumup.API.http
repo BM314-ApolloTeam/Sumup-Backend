@@ -4,3 +4,14 @@ GET {{Sumup.API_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+
+POST {{Sumup.API_HostAddress}}/api/Summary/generate
+Content-Type: application/json
+
+{
+  "token": "GOOGLETOKENHERE",
+  "preferences": "Please summarize my tasks in bullet points and remind me to take short breaks.",
+  "voiceId": "21m00Tcm4TlvDq8ikWAM"
+}
+
+###
