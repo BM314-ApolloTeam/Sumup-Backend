@@ -4,8 +4,13 @@ using Sumup.Core.Configurations;
 using Sumup.Core.Interfaces;
 using Sumup.Infrastructure.Data;
 using Sumup.Infrastructure.Service;
-using Sumup.Infrastructure.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Security.Claims;
 using System;
+using Sumup.Infrastructure.Services;
 
 namespace Sumup.API
 {
@@ -28,9 +33,52 @@ namespace Sumup.API
             builder.Services.Configure<WeatherApiSettings>(builder.Configuration.GetSection("WeatherApi"));
 
             builder.Services.AddControllers();
+
+            // 1. JWT Güvenlik Görevlisini Tanımlıyoruz
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("BURAYA_COK_GIZLI_VE_UZUN_BIR_SIFRE_YAZMALISIN_EN_AZ_32_KARAKTER")),
+                        ValidateIssuer = false, // Şimdilik false (İleride domain adın olacak)
+                        ValidateAudience = false, // Şimdilik false
+                        ClockSkew = TimeSpan.Zero
+                    };
+                });
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+
+            // 2. Swagger'a JWT Kilit İkonunu ve Yeteneğini Ekliyoruz
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "Lütfen JWT Token'ınızı aşağıya yapıştırın (Başına 'Bearer ' yazmanıza gerek yok)."
+                });
+
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[] {}
+                    }
+                });
+            });
 
             var app = builder.Build();
 
@@ -43,8 +91,9 @@ namespace Sumup.API
 
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
-
+            // 2. Güvenlik Görevlilerini Kapıya Dikiyoruz (Sıralama ÇOK ÖNEMLİ!)
+            app.UseAuthentication(); // "Sen kimsin?" diye sorar
+            app.UseAuthorization();  // "Buraya girmeye yetkin var mı?" diye sorar
 
             app.MapControllers();
 

@@ -38,12 +38,20 @@ namespace Sumup.Infrastructure.Service
 
             var content = await response.Content.ReadAsStringAsync();
             using var jsonDoc = JsonDocument.Parse(content);
+            var root = jsonDoc.RootElement;
 
-            // JSON içinden sıcaklık ve durumu çekiyoruz
-            var temp = Math.Round(jsonDoc.RootElement.GetProperty("main").GetProperty("temp").GetDouble());
-            var description = jsonDoc.RootElement.GetProperty("weather")[0].GetProperty("description").GetString();
+            // Temel Bilgiler
+            var temp = Math.Round(root.GetProperty("main").GetProperty("temp").GetDouble());
+            var feelsLike = Math.Round(root.GetProperty("main").GetProperty("feels_like").GetDouble());
+            var humidity = root.GetProperty("main").GetProperty("humidity").GetInt32();
+            var description = root.GetProperty("weather")[0].GetProperty("description").GetString();
 
-            return $"{city} için hava durumu: {temp}°C, {description}.";
+            // Rüzgar Hızı (OpenWeatherMap saniyede metre 'm/s' döner, km/s'ye çevirmek için 3.6 ile çarpıyoruz)
+            var windSpeedMs = root.GetProperty("wind").GetProperty("speed").GetDouble();
+            var windSpeedKmH = Math.Round(windSpeedMs * 3.6);
+
+            // AI'ın bayılacağı o zengin prompt metni!
+            return $"{city} için hava durumu: {temp}°C (Hissedilen: {feelsLike}°C), {description}. Nem: %{humidity}, Rüzgar: {windSpeedKmH} km/s.";
         }
     }
 }
