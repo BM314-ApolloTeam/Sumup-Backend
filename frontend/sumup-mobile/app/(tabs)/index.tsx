@@ -28,7 +28,7 @@ type DataSource = {
 const dailyBriefing: DailyBriefing = {
   title: 'Morning Summary Podcast',
   description:
-    'A short daily podcast created from news, weather, calendar events, and personal tasks.',
+    'A short daily podcast created from weather, calendar events, and personal tasks.',
   scheduledTime: 'Today • 07:00 AM',
   status: 'Waiting',
 };
@@ -65,31 +65,18 @@ export default function HomeScreen() {
   const dataSources: DataSource[] = [
     {
       id: 1,
-      name: 'News',
-      provider: 'News API',
-      status: 'Connected',
-      message: 'Latest news and headlines are ready to be summarized.',
-    },
-    {
-      id: 2,
       name: 'Weather',
       provider: 'OpenWeather API',
       status: weatherMessage ? 'Error' : 'Not Connected',
       message: weatherMessage || 'Waiting for weather service response.',
     },
     {
-      id: 3,
-      name: 'Calendar',
+      id: 2,
+      name: 'Calendar & Tasks',
       provider: 'Google Calendar',
       status: googleMessage ? 'Error' : 'Not Connected',
-      message: googleMessage || 'Waiting for Google Calendar response.',
-    },
-    {
-      id: 4,
-      name: 'Tasks',
-      provider: 'Todoist',
-      status: 'Not Connected',
-      message: 'Connect your Todoist account to include your daily tasks.',
+      message:
+        googleMessage || 'Waiting for Google Calendar and Tasks response.',
     },
   ];
 
@@ -127,6 +114,7 @@ export default function HomeScreen() {
       </View>
 
       <Text style={styles.sectionTitle}>Data Sources</Text>
+
       <Text style={styles.sectionDescription}>
         We collect and summarize data from your connected services.
       </Text>
@@ -134,29 +122,34 @@ export default function HomeScreen() {
       <View style={styles.infoGrid}>
         {dataSources.map((source) => (
           <View key={source.id} style={styles.infoBox}>
-            <Text style={styles.infoTitle}>{source.name}</Text>
-            <Text style={styles.infoProvider}>{source.provider}</Text>
 
-            <View
-              style={[
-                styles.sourceBadge,
-                source.status === 'Connected'
-                  ? styles.connectedBadge
-                  : source.status === 'Error'
-                    ? styles.errorBadge
-                    : styles.neutralBadge,
-              ]}>
-              <Text
+            <View style={styles.infoHeader}>
+              <View>
+                <Text style={styles.infoTitle}>{source.name}</Text>
+                <Text style={styles.infoProvider}>{source.provider}</Text>
+              </View>
+
+              <View
                 style={[
-                  styles.sourceBadgeText,
+                  styles.sourceBadge,
                   source.status === 'Connected'
-                    ? styles.connectedText
+                    ? styles.connectedBadge
                     : source.status === 'Error'
-                      ? styles.errorText
-                      : styles.neutralText,
+                      ? styles.errorBadge
+                      : styles.neutralBadge,
                 ]}>
-                {source.status}
-              </Text>
+                <Text
+                  style={[
+                    styles.sourceBadgeText,
+                    source.status === 'Connected'
+                      ? styles.connectedText
+                      : source.status === 'Error'
+                        ? styles.errorText
+                        : styles.neutralText,
+                  ]}>
+                  {source.status}
+                </Text>
+              </View>
             </View>
 
             <View style={styles.divider} />
@@ -174,6 +167,7 @@ export default function HomeScreen() {
 
       <View style={styles.privacyCard}>
         <Text style={styles.privacyTitle}>Your Privacy Matters</Text>
+
         <Text style={styles.privacyText}>
           Your data is used only to generate your daily podcast.
         </Text>
@@ -185,7 +179,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F9FC',
+    backgroundColor: '#0F0F1A',
   },
 
   content: {
@@ -196,23 +190,19 @@ const styles = StyleSheet.create({
   logo: {
     fontSize: 38,
     fontWeight: '900',
-    color: '#2563EB',
+    color: '#FFFFFF',
     textAlign: 'center',
     marginTop: 34,
     marginBottom: 28,
   },
 
   briefingCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 28,
     padding: 20,
     marginBottom: 28,
     borderWidth: 1,
-    borderColor: '#DBEAFE',
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
 
   briefingHeader: {
@@ -225,7 +215,7 @@ const styles = StyleSheet.create({
     width: 58,
     height: 58,
     borderRadius: 16,
-    backgroundColor: '#EEF2FF',
+    backgroundColor: 'rgba(255,255,255,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 14,
@@ -241,26 +231,26 @@ const styles = StyleSheet.create({
 
   cardTitle: {
     fontSize: 19,
-    color: '#111827',
+    color: '#FFFFFF',
     fontWeight: '800',
     marginBottom: 6,
   },
 
   cardMeta: {
     fontSize: 14,
-    color: '#6B7280',
+    color: 'rgba(255,255,255,0.62)',
     fontWeight: '600',
   },
 
   statusBadge: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: 'rgba(255,122,0,0.15)',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 14,
   },
 
   statusText: {
-    color: '#D97706',
+    color: '#FF7A00',
     fontSize: 12,
     fontWeight: '800',
   },
@@ -268,16 +258,24 @@ const styles = StyleSheet.create({
   quoteText: {
     fontSize: 17,
     fontStyle: 'italic',
-    color: '#4B5563',
+    color: 'rgba(255,255,255,0.72)',
     lineHeight: 26,
     marginBottom: 20,
   },
 
   primaryButton: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF7A00',
     paddingVertical: 16,
-    borderRadius: 16,
+    borderRadius: 20,
     alignItems: 'center',
+    shadowColor: '#FF7A00',
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.35,
+    shadowRadius: 18,
+    elevation: 10,
   },
 
   primaryButtonText: {
@@ -289,64 +287,67 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
     marginBottom: 6,
   },
 
   sectionDescription: {
     fontSize: 15,
-    color: '#6B7280',
+    color: 'rgba(255,255,255,0.62)',
     lineHeight: 22,
     marginBottom: 18,
   },
 
   infoGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 14,
   },
 
   infoBox: {
-    width: '47%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
+    width: '100%',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 22,
     padding: 16,
-    borderWidth: 1.5,
-    borderColor: '#D1D5DB',
-    minHeight: 180,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    minHeight: 135,
+  },
+
+  infoHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
   },
 
   infoTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
     marginBottom: 5,
   },
 
   infoProvider: {
     fontSize: 13,
-    color: '#6B7280',
-    marginBottom: 12,
+    color: 'rgba(255,255,255,0.55)',
   },
 
   sourceBadge: {
-    alignSelf: 'flex-start',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 14,
-    marginBottom: 12,
+    marginLeft: 12,
   },
 
   connectedBadge: {
-    backgroundColor: '#DCFCE7',
+    backgroundColor: 'rgba(34,197,94,0.15)',
   },
 
   errorBadge: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: 'rgba(255,0,110,0.15)',
   },
 
   neutralBadge: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: 'rgba(255,255,255,0.08)',
   },
 
   sourceBadgeText: {
@@ -355,53 +356,53 @@ const styles = StyleSheet.create({
   },
 
   connectedText: {
-    color: '#16A34A',
+    color: '#22C55E',
   },
 
   errorText: {
-    color: '#DC2626',
+    color: '#FF006E',
   },
 
   neutralText: {
-    color: '#6B7280',
+    color: 'rgba(255,255,255,0.62)',
   },
 
   divider: {
     height: 1,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: 'rgba(255,255,255,0.08)',
     marginBottom: 12,
   },
 
   sourceMessage: {
     fontSize: 13,
-    color: '#4B5563',
+    color: 'rgba(255,255,255,0.68)',
     lineHeight: 19,
   },
 
   errorMessage: {
-    color: '#DC2626',
+    color: '#FF006E',
     fontWeight: '600',
   },
 
   privacyCard: {
-    backgroundColor: '#F5F3FF',
-    borderRadius: 18,
+    backgroundColor: 'rgba(131,56,236,0.12)',
+    borderRadius: 22,
     padding: 18,
     marginTop: 28,
     borderWidth: 1,
-    borderColor: '#DDD6FE',
+    borderColor: 'rgba(131,56,236,0.22)',
   },
 
   privacyTitle: {
     fontSize: 17,
     fontWeight: '800',
-    color: '#312E81',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
 
   privacyText: {
     fontSize: 14,
-    color: '#4B5563',
+    color: 'rgba(255,255,255,0.68)',
     lineHeight: 21,
   },
 });

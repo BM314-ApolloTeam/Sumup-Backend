@@ -1,11 +1,11 @@
 const API_BASE_URL = 'http://10.0.2.2:5039';
 
+let weatherErrorLogged = false;
+let googleErrorLogged = false;
+
 export async function getWeatherData() {
   try {
-
-    const response = await fetch(
-      `${API_BASE_URL}/api/Test/weather`
-    );
+    const response = await fetch(`${API_BASE_URL}/api/Test/weather`);
 
     if (!response.ok) {
       throw new Error('Failed to fetch weather data');
@@ -14,21 +14,23 @@ export async function getWeatherData() {
     const data = await response.json();
 
     return data;
-
   } catch (error) {
 
-    console.error('Weather API Error:', error);
+    if (!weatherErrorLogged) {
+      console.log('Weather API Error:', error);
+      weatherErrorLogged = true;
+    }
 
-    throw error;
+    return {
+      success: false,
+      message: 'Weather service is not connected yet.',
+    };
   }
 }
 
 export async function getGoogleData() {
   try {
-
-    const response = await fetch(
-      `${API_BASE_URL}/api/Test/google-data`
-    );
+    const response = await fetch(`${API_BASE_URL}/api/Test/google-data`);
 
     if (!response.ok) {
       throw new Error('Failed to fetch Google data');
@@ -37,11 +39,16 @@ export async function getGoogleData() {
     const data = await response.json();
 
     return data;
-
   } catch (error) {
 
-    console.error('Google API Error:', error);
+    if (!googleErrorLogged) {
+      console.log('Google API Error:', error);
+      googleErrorLogged = true;
+    }
 
-    throw error;
+    return {
+      success: false,
+      message: 'Google Calendar and Tasks are not connected yet.',
+    };
   }
 }

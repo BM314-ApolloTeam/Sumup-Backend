@@ -7,6 +7,7 @@ import {
   View,
 } from 'react-native';
 
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 
@@ -21,28 +22,22 @@ export default function BriefingSettingsScreen() {
   const [dailyBriefing, setDailyBriefing] = useState(
     defaultBriefingSettings.dailyBriefing
   );
+
   const [podcastTime, setPodcastTime] = useState(
     defaultBriefingSettings.podcastTime
   );
+
   const [notifications, setNotifications] = useState(
     defaultBriefingSettings.notifications
   );
+
   const [podcastLength, setPodcastLength] = useState(
     defaultBriefingSettings.podcastLength
   );
 
-  const timeOptions = [
-    '00:00',
-    '03:00',
-    '06:00',
-    '07:00',
-    '09:00',
-    '12:00',
-    '15:00',
-    '18:00',
-    '21:00',
-    '23:00',
-  ];
+  const [showTimePicker, setShowTimePicker] = useState(false);
+
+  const isDailyBriefingDisabled = dailyBriefing === 'Disabled';
 
   useFocusEffect(
     useCallback(() => {
@@ -64,6 +59,39 @@ export default function BriefingSettingsScreen() {
       loadSettings();
     }, [])
   );
+
+  function handleDailyBriefingChange(value: 'Enabled' | 'Disabled') {
+    setDailyBriefing(value);
+
+    if (value === 'Disabled') {
+      setNotifications('Disabled');
+      setShowTimePicker(false);
+    }
+  }
+
+  function getTimePickerValue() {
+    const [hour, minute] = podcastTime.split(':').map(Number);
+
+    const date = new Date();
+    date.setHours(hour || 0);
+    date.setMinutes(minute || 0);
+    date.setSeconds(0);
+
+    return date;
+  }
+
+  function handleTimeChange(event: unknown, selectedDate?: Date) {
+    setShowTimePicker(false);
+
+    if (!selectedDate) {
+      return;
+    }
+
+    const hour = selectedDate.getHours().toString().padStart(2, '0');
+    const minute = selectedDate.getMinutes().toString().padStart(2, '0');
+
+    setPodcastTime(`${hour}:${minute}`);
+  }
 
   function handleSave() {
     const updatedSettings: BriefingSettings = {
@@ -106,18 +134,31 @@ export default function BriefingSettingsScreen() {
   function OptionButton({
     label,
     selected,
+    disabled = false,
     onPress,
   }: {
     label: string;
     selected: boolean;
+    disabled?: boolean;
     onPress: () => void;
   }) {
     return (
       <Pressable
-        style={[styles.optionButton, selected && styles.selectedOption]}
+        style={[
+          styles.optionButton,
+          selected && styles.selectedOption,
+          disabled && styles.disabledOption,
+        ]}
+        disabled={disabled}
         onPress={onPress}
       >
-        <Text style={[styles.optionText, selected && styles.selectedOptionText]}>
+        <Text
+          style={[
+            styles.optionText,
+            selected && styles.selectedOptionText,
+            disabled && styles.disabledOptionText,
+          ]}
+        >
           {label}
         </Text>
       </Pressable>
@@ -139,65 +180,78 @@ export default function BriefingSettingsScreen() {
           <OptionButton
             label="Enabled"
             selected={dailyBriefing === 'Enabled'}
-            onPress={() => setDailyBriefing('Enabled')}
+            onPress={() => handleDailyBriefingChange('Enabled')}
           />
 
           <OptionButton
             label="Disabled"
             selected={dailyBriefing === 'Disabled'}
-            onPress={() => setDailyBriefing('Disabled')}
+            onPress={() => handleDailyBriefingChange('Disabled')}
           />
         </View>
 
-        <Text style={styles.label}>Podcast Time</Text>
+        <View style={isDailyBriefingDisabled && styles.disabledSection}>
+          <Text
+            style={[
+              styles.label,
+              isDailyBriefingDisabled && styles.disabledLabel,
+            ]}
+          >
+            Podcast Time
+          </Text>
 
-        <View style={styles.timeContainer}>
-          {timeOptions.map((time) => (
-            <OptionButton
-              key={time}
-              label={time}
-              selected={podcastTime === time}
-              onPress={() => setPodcastTime(time)}
+          <Pressable
+            style={[
+              styles.timePickerButton,
+              isDailyBriefingDisabled && styles.disabledOption,
+            ]}
+            disabled={isDailyBriefingDisabled}
+            onPress={() => setShowTimePicker(true)}
+          >
+            <Text
+              style={[
+                styles.timePickerButtonText,
+                isDailyBriefingDisabled && styles.disabledOptionText,
+              ]}
+            >
+              {podcastTime}
+            </Text>
+          </Pressable>
+
+          {showTimePicker && (
+            <DateTimePicker
+              value={getTimePickerValue()}
+              mode="time"
+              display="spinner"
+              is24Hour
+              onChange={handleTimeChange}
             />
-          ))}
-        </View>
+          )}
 
-        <Text style={styles.label}>Notifications</Text>
+          <Text
+            style={[
+              styles.label,
+              isDailyBriefingDisabled && styles.disabledLabel,
+            ]}
+          >
+            Notifications
+          </Text>
 
-        <View style={styles.optionRow}>
-          <OptionButton
-            label="Enabled"
-            selected={notifications === 'Enabled'}
-            onPress={() => setNotifications('Enabled')}
-          />
+          <View style={styles.optionRow}>
+            <OptionButton
+              label="Enabled"
+              selected={notifications === 'Enabled'}
+              disabled={isDailyBriefingDisabled}
+              onPress={() => setNotifications('Enabled')}
+            />
 
-          <OptionButton
-            label="Disabled"
-            selected={notifications === 'Disabled'}
-            onPress={() => setNotifications('Disabled')}
-          />
-        </View>
-
-        <Text style={styles.label}>Podcast Length</Text>
-
-        <View style={styles.optionRow}>
-          <OptionButton
-            label="3 min"
-            selected={podcastLength === '3 min'}
-            onPress={() => setPodcastLength('3 min')}
-          />
-
-          <OptionButton
-            label="5 min"
-            selected={podcastLength === '5 min'}
-            onPress={() => setPodcastLength('5 min')}
-          />
-
-          <OptionButton
-            label="7 min"
-            selected={podcastLength === '7 min'}
-            onPress={() => setPodcastLength('7 min')}
-          />
+            <OptionButton
+              label="Disabled"
+              selected={notifications === 'Disabled'}
+              disabled={isDailyBriefingDisabled}
+              onPress={() => setNotifications('Disabled')}
+            />
+          </View>
         </View>
       </View>
 
@@ -211,7 +265,7 @@ export default function BriefingSettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F9FC',
+    backgroundColor: '#07001F',
   },
 
   content: {
@@ -227,33 +281,40 @@ const styles = StyleSheet.create({
 
   backButtonText: {
     fontSize: 15,
-    fontWeight: '700',
-    color: '#2563EB',
+    fontWeight: '800',
+    color: '#60A5FA',
   },
 
   title: {
     fontSize: 30,
-    fontWeight: '800',
-    color: '#111827',
+    fontWeight: '900',
+    color: '#FFFFFF',
     marginBottom: 28,
-    textAlign: 'center',
   },
 
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 22,
+    backgroundColor: 'rgba(37, 99, 235, 0.22)',
+    borderRadius: 24,
     padding: 22,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(96, 165, 250, 0.42)',
     marginBottom: 24,
   },
 
   label: {
     fontSize: 15,
-    fontWeight: '800',
-    color: '#111827',
+    fontWeight: '900',
+    color: '#FFFFFF',
     marginBottom: 10,
     marginTop: 10,
+  },
+
+  disabledLabel: {
+    color: 'rgba(255,255,255,0.34)',
+  },
+
+  disabledSection: {
+    opacity: 0.55,
   },
 
   optionRow: {
@@ -263,39 +324,59 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
 
-  timeContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginBottom: 18,
-  },
-
   optionButton: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(255,255,255,0.10)',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(255,255,255,0.12)',
     borderRadius: 14,
     paddingVertical: 10,
     paddingHorizontal: 14,
   },
 
   selectedOption: {
-    backgroundColor: '#111827',
-    borderColor: '#111827',
+    backgroundColor: '#2563EB',
+    borderColor: '#60A5FA',
+  },
+
+  disabledOption: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(255,255,255,0.08)',
   },
 
   optionText: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#6B7280',
+    fontWeight: '800',
+    color: 'rgba(255,255,255,0.62)',
   },
 
   selectedOptionText: {
     color: '#FFFFFF',
   },
 
+  disabledOptionText: {
+    color: 'rgba(255,255,255,0.34)',
+  },
+
+  timePickerButton: {
+    backgroundColor: 'rgba(0,0,0,0.24)',
+    borderRadius: 18,
+    paddingVertical: 18,
+    paddingHorizontal: 18,
+    marginBottom: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.10)',
+    alignItems: 'center',
+  },
+
+  timePickerButtonText: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: 1,
+  },
+
   saveButton: {
-    backgroundColor: '#111827',
+    backgroundColor: '#2563EB',
     paddingVertical: 16,
     borderRadius: 18,
     alignItems: 'center',
@@ -304,6 +385,6 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
   },
 });

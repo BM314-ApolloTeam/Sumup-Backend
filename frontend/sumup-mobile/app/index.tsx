@@ -8,11 +8,19 @@ import { getCurrentUser } from '@/database/authDatabase';
 export default function InitialScreen() {
   useEffect(() => {
     async function checkSession() {
-      const currentUser = await getCurrentUser();
+      try {
+        const currentUser = await getCurrentUser();
 
-      if (currentUser) {
-        router.replace('/(tabs)');
-      } else {
+        console.log('Current User:', currentUser);
+
+        if (currentUser) {
+          router.replace('/(tabs)');
+        } else {
+          router.replace('/welcome/welcome');
+        }
+      } catch (error) {
+        console.log('Session Error:', error);
+
         router.replace('/welcome/welcome');
       }
     }
@@ -22,7 +30,7 @@ export default function InitialScreen() {
 
   return (
     <View style={styles.container}>
-      <ActivityIndicator size="large" color="#111827" />
+      <ActivityIndicator size="large" color="#FF7A00" />
     </View>
   );
 }
@@ -30,7 +38,7 @@ export default function InitialScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F9FC',
+    backgroundColor: '#0F0F1A',
     justifyContent: 'center',
     alignItems: 'center',
   },

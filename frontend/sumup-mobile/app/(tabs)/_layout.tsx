@@ -1,28 +1,49 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
 import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
         tabBarButton: HapticTab,
-      }}>
 
+        tabBarStyle: {
+          backgroundColor: '#11183A',
+          borderTopColor: 'rgba(96,165,250,0.20)',
+          borderTopWidth: 1,
+          height: 78,
+          paddingTop: 8,
+          paddingBottom: 8,
+        },
+
+        tabBarActiveTintColor: '#60A5FA',
+        tabBarInactiveTintColor: 'rgba(255,255,255,0.58)',
+
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '700',
+          marginTop: 2,
+        },
+
+        tabBarIconStyle: {
+          marginTop: 4,
+        },
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="house.fill" color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'home' : 'home-outline'}
+              size={26}
+              color={color}
+            />
           ),
         }}
       />
@@ -31,8 +52,12 @@ export default function TabLayout() {
         name="podcast"
         options={{
           title: 'Podcast',
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="mic.fill" color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'play-circle' : 'play-circle-outline'}
+              size={26}
+              color={color}
+            />
           ),
         }}
       />
@@ -41,8 +66,12 @@ export default function TabLayout() {
         name="history"
         options={{
           title: 'History',
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="clock.fill" color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'time' : 'time-outline'}
+              size={26}
+              color={color}
+            />
           ),
         }}
       />
@@ -51,12 +80,15 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="person.fill" color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'person' : 'person-outline'}
+              size={26}
+              color={color}
+            />
           ),
         }}
       />
-
     </Tabs>
   );
 }

@@ -100,7 +100,7 @@ export default function EditProfileScreen() {
         value={fullName}
         onChangeText={setFullName}
         placeholder="Full Name"
-        placeholderTextColor="#9CA3AF"
+        placeholderTextColor="rgba(255,255,255,0.42)"
       />
 
       <Text style={styles.label}>Email</Text>
@@ -109,7 +109,7 @@ export default function EditProfileScreen() {
         value={email}
         onChangeText={setEmail}
         placeholder="Email"
-        placeholderTextColor="#9CA3AF"
+        placeholderTextColor="rgba(255,255,255,0.42)"
         autoCapitalize="none"
         keyboardType="email-address"
       />
@@ -120,7 +120,7 @@ export default function EditProfileScreen() {
         value={password}
         onChangeText={setPassword}
         placeholder="Password"
-        placeholderTextColor="#9CA3AF"
+        placeholderTextColor="rgba(255,255,255,0.42)"
         secureTextEntry
       />
 
@@ -134,7 +134,7 @@ export default function EditProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F9FC',
+    backgroundColor: '#07001F',
   },
 
   content: {
@@ -150,39 +150,38 @@ const styles = StyleSheet.create({
 
   backButtonText: {
     fontSize: 15,
-    fontWeight: '700',
-    color: '#2563EB',
+    fontWeight: '800',
+    color: '#60A5FA',
   },
 
   title: {
     fontSize: 30,
-    fontWeight: '800',
-    color: '#111827',
+    fontWeight: '900',
+    color: '#FFFFFF',
     marginBottom: 28,
-    textAlign: 'center',
   },
 
   label: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#374151',
+    fontWeight: '800',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
 
   input: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(37, 99, 235, 0.22)',
     borderRadius: 16,
     paddingVertical: 16,
     paddingHorizontal: 18,
     marginBottom: 18,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(96, 165, 250, 0.42)',
     fontSize: 15,
-    color: '#111827',
+    color: '#FFFFFF',
   },
 
   saveButton: {
-    backgroundColor: '#111827',
+    backgroundColor: '#2563EB',
     paddingVertical: 16,
     borderRadius: 18,
     alignItems: 'center',
@@ -192,6 +191,6 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
   },
 });

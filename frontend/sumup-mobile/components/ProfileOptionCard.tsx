@@ -15,42 +15,54 @@ export default function ProfileOptionCard({
 }: ProfileOptionCardProps) {
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>
-        {title}
-      </Text>
 
-      {value && (
-        <Text style={styles.value}>
-          {value}
+      <View style={styles.leftContent}>
+        <Text style={styles.title}>
+          {title}
         </Text>
-      )}
+
+        {value && (
+          <Text style={styles.value}>
+            {value}
+          </Text>
+        )}
+      </View>
 
       {status && (
         <StatusBadge status={status} />
       )}
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: 16,
     padding: 18,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(255,255,255,0.08)',
+
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
+  leftContent: {
+    flex: 1,
   },
 
   title: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#111827',
+    color: '#FFFFFF',
     marginBottom: 6,
   },
 
   value: {
     fontSize: 14,
-    color: '#6B7280',
+    color: 'rgba(255,255,255,0.65)',
   },
 });
