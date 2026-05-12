@@ -14,7 +14,7 @@ POST {{Sumup.API_HostAddress}}/api/user/settings
 Content-Type: application/json
 
 {
-  "userId": "d130f1f0-fc57-4e00-87b3-a741d559b6d4",
+  "userId": "",
   "wakeUpTime": "21:07:00",
   "googleRefreshToken": "Token Bilgisi",
   "preferences": "Kısa ve öz olsun.Önemli şeyleri özetle ",
