@@ -5,13 +5,21 @@ Accept: application/json
 
 ###
 
-POST {{Sumup.API_HostAddress}}/api/Summary/generate
+POST {{Sumup.API_HostAddress}}/api/user/create-test-user
+Accept: application/json
+
+###
+
+POST {{Sumup.API_HostAddress}}/api/user/settings
 Content-Type: application/json
 
 {
-  "token": "GOOGLETOKENHERE",
-  "preferences": "Please summarize my tasks in bullet points and remind me to take short breaks.",
-  "voiceId": "21m00Tcm4TlvDq8ikWAM"
+  "userId": "d130f1f0-fc57-4e00-87b3-a741d559b6d4",
+  "wakeUpTime": "21:07:00",
+  "googleRefreshToken": "1//04zwAJszkhwGbCgYIARAAGAQSNwF-L9IrDbVrP0p-PjGy9h5sUODI97vH_5XdT_4BbjsB7nHRQeIC3u1nkoeoXO48vV-gSc4n7Do",
+  "preferences": "Kısa ve öz olsun.Önemli şeyleri özetle ",
+  "voiceId": "21m00Tcm4TlvDq8ikWAM",
+  "timeZoneId": "Turkey Standard Time"
 }
 
 ###

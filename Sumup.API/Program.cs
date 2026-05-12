@@ -35,7 +35,10 @@ namespace Sumup.API
 
             builder.Services.AddHttpClient<IGeminiService, GeminiService>();
             builder.Services.AddHttpClient<IElevenLabsService, ElevenLabsService>();
+            builder.Services.AddHttpClient<IGoogleAuthService, GoogleAuthService>();
             builder.Services.Configure<WeatherApiSettings>(builder.Configuration.GetSection("WeatherApi"));
+
+            builder.Services.AddHostedService<PodcastGeneratorWorker>();
 
             builder.Services.AddControllers();
 

@@ -27,10 +27,8 @@ namespace Sumup.Infrastructure.Service
             {
                 return "Gemini API Key is not configured.";
             }
+            var endpoint = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro:generateContent?key={_settings.ApiKey}";
 
-            // 2.5 Flash serisi hem çok hızlıdır hem de şu an 3.1 kadar yoğun değildir.
-            var endpoint = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={_settings.ApiKey}";
-            // Constructing the prompt based on the inputs
             var promptBuilder = new StringBuilder();
             promptBuilder.AppendLine("Sen profesyonel, enerjik ve motive edici bir kişisel asistan ve podcast sunucususun.");
             promptBuilder.AppendLine($"Bugünün Tarihi: {DateTime.Now.ToString("dd MMMM yyyy dddd")}");
