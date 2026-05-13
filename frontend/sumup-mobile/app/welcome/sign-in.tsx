@@ -8,38 +8,18 @@ import {
 } from 'react-native';
 
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
+import * as Linking from 'expo-linking';
 
-import { loginUser } from '@/database/authDatabase';
+import { loginUser, loginWithGoogle } from '@/database/authDatabase';
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function SignInScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId:
-      '383196573436-pj7bsfd2t07qvaufh9nd6898g8701osn.apps.googleusercontent.com',
-  });
-
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { authentication } = response;
-
-      console.log('Google Access Token:', authentication?.accessToken);
-
-      Alert.alert(
-        'Google Sign In Successful',
-        'Your Google account has been connected.'
-      );
-
-      router.replace('/(tabs)');
-    }
-  }, [response]);
 
   async function handleSignIn() {
     if (!email || !password) {
@@ -57,8 +37,64 @@ export default function SignInScreen() {
     router.replace('/(tabs)');
   }
 
-  function handleGoogleSignIn() {
-    promptAsync();
+  async function handleGoogleSignIn() {
+    try {
+      const redirectUri = Linking.createURL('google-auth-success', {
+        scheme: 'sumupmobile',
+      });
+
+      const loginUrl =
+        `https://helpful-radiation-creation.ngrok-free.dev/api/google-auth/login?appRedirectUri=${encodeURIComponent(
+          redirectUri
+        )}`;
+
+      const result = await WebBrowser.openAuthSessionAsync(
+        loginUrl,
+        redirectUri
+      );
+
+      if (result.type !== 'success') {
+        Alert.alert(
+          'Google Connection',
+          'Google connection was cancelled or could not be completed.'
+        );
+        return;
+      }
+
+      const url = new URL(result.url);
+
+      const googleEmail = url.searchParams.get('email');
+      const googleName = url.searchParams.get('name');
+      const accessToken = url.searchParams.get('access_token');
+
+      if (!googleEmail || !accessToken) {
+        Alert.alert(
+          'Google Sign In Failed',
+          'Google account information could not be received.'
+        );
+        return;
+      }
+
+      const loginResult = await loginWithGoogle({
+        fullName: googleName || 'Google User',
+        email: googleEmail,
+        googleAccessToken: accessToken,
+      });
+
+      if (!loginResult.success) {
+        Alert.alert('Google Sign In Failed', loginResult.message);
+        return;
+      }
+
+      router.replace('/(tabs)');
+    } catch (error) {
+      console.log('Google Sign In Error:', error);
+
+      Alert.alert(
+        'Google Sign In Failed',
+        'An error occurred while signing in with Google.'
+      );
+    }
   }
 
   return (
@@ -111,17 +147,8 @@ export default function SignInScreen() {
             <View style={styles.divider} />
           </View>
 
-          <Pressable
-            style={[
-              styles.googleButton,
-              !request && styles.disabledButton,
-            ]}
-            disabled={!request}
-            onPress={handleGoogleSignIn}
-          >
-            <Text style={styles.googleButtonText}>
-              Continue with Google
-            </Text>
+          <Pressable style={styles.googleButton} onPress={handleGoogleSignIn}>
+            <Text style={styles.googleButtonText}>Continue with Google</Text>
           </Pressable>
         </View>
 

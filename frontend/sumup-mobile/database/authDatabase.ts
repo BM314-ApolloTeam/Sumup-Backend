@@ -12,6 +12,13 @@ export type User = {
   email: string;
   password: string;
   briefingSettings: BriefingSettings;
+  googleAccessToken?: string;
+};
+
+type GoogleLoginPayload = {
+  fullName: string;
+  email: string;
+  googleAccessToken: string;
 };
 
 const USERS_KEY = 'users';
@@ -24,17 +31,41 @@ export const defaultBriefingSettings: BriefingSettings = {
   podcastLength: '5 min',
 };
 
-export async function getUsers(): Promise<User[]> {
-  const usersJson = await AsyncStorage.getItem(USERS_KEY);
-
-  if (!usersJson) {
-    return [];
-  }
-
-  return JSON.parse(usersJson);
+function normalizeUser(user: User): User {
+  return {
+    ...user,
+    briefingSettings: {
+      ...defaultBriefingSettings,
+      ...(user.briefingSettings || {}),
+    },
+    googleAccessToken: user.googleAccessToken,
+  };
 }
 
-export async function registerUser(newUser: Omit<User, 'briefingSettings'>) {
+export async function getUsers(): Promise<User[]> {
+  try {
+    const usersJson = await AsyncStorage.getItem(USERS_KEY);
+
+    if (!usersJson) {
+      return [];
+    }
+
+    const users = JSON.parse(usersJson);
+
+    if (!Array.isArray(users)) {
+      return [];
+    }
+
+    return users.map(normalizeUser);
+  } catch (error) {
+    console.log('Get users error:', error);
+    return [];
+  }
+}
+
+export async function registerUser(
+  newUser: Omit<User, 'briefingSettings' | 'googleAccessToken'>
+) {
   const users = await getUsers();
 
   const emailExists = users.some(
@@ -51,6 +82,7 @@ export async function registerUser(newUser: Omit<User, 'briefingSettings'>) {
   const userWithSettings: User = {
     ...newUser,
     briefingSettings: defaultBriefingSettings,
+    googleAccessToken: undefined,
   };
 
   await AsyncStorage.setItem(
@@ -58,9 +90,17 @@ export async function registerUser(newUser: Omit<User, 'briefingSettings'>) {
     JSON.stringify([...users, userWithSettings])
   );
 
+  await AsyncStorage.setItem(
+    CURRENT_USER_KEY,
+    JSON.stringify(userWithSettings)
+  );
+
+  console.log('Saved Current User:', userWithSettings);
+
   return {
     success: true,
     message: 'Account created successfully.',
+    user: userWithSettings,
   };
 }
 
@@ -81,13 +121,11 @@ export async function loginUser(email: string, password: string) {
     };
   }
 
-  const normalizedUser: User = {
-    ...foundUser,
-    briefingSettings:
-      foundUser.briefingSettings || defaultBriefingSettings,
-  };
+  const normalizedUser = normalizeUser(foundUser);
 
   await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(normalizedUser));
+
+  console.log('Logged User:', normalizedUser);
 
   return {
     success: true,
@@ -96,28 +134,90 @@ export async function loginUser(email: string, password: string) {
   };
 }
 
-export async function getCurrentUser(): Promise<User | null> {
-  const userJson = await AsyncStorage.getItem(CURRENT_USER_KEY);
+export async function loginWithGoogle(googleUser: GoogleLoginPayload) {
+  try {
+    const users = await getUsers();
 
-  if (!userJson) {
+    const existingUser = users.find(
+      (user) => user.email.toLowerCase() === googleUser.email.toLowerCase()
+    );
+
+    let updatedUser: User;
+
+    if (existingUser) {
+      updatedUser = normalizeUser({
+        ...existingUser,
+        fullName: googleUser.fullName || existingUser.fullName,
+        googleAccessToken: googleUser.googleAccessToken,
+      });
+
+      const updatedUsers = users.map((user) =>
+        user.email.toLowerCase() === googleUser.email.toLowerCase()
+          ? updatedUser
+          : user
+      );
+
+      await AsyncStorage.setItem(USERS_KEY, JSON.stringify(updatedUsers));
+    } else {
+      updatedUser = {
+        fullName: googleUser.fullName || 'Google User',
+        email: googleUser.email,
+        password: '',
+        briefingSettings: defaultBriefingSettings,
+        googleAccessToken: googleUser.googleAccessToken,
+      };
+
+      await AsyncStorage.setItem(
+        USERS_KEY,
+        JSON.stringify([...users, updatedUser])
+      );
+    }
+
+    await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedUser));
+
+    console.log('Google Logged User:', updatedUser);
+
+    return {
+      success: true,
+      message: 'Signed in with Google successfully.',
+      user: updatedUser,
+    };
+  } catch (error) {
+    console.log('Google login database error:', error);
+
+    return {
+      success: false,
+      message: 'Google user could not be saved.',
+      user: null,
+    };
+  }
+}
+
+export async function getCurrentUser(): Promise<User | null> {
+  try {
+    const userJson = await AsyncStorage.getItem(CURRENT_USER_KEY);
+
+    if (!userJson) {
+      return null;
+    }
+
+    const user = JSON.parse(userJson);
+
+    return normalizeUser(user);
+  } catch (error) {
+    console.log('Get current user error:', error);
     return null;
   }
-
-  const user = JSON.parse(userJson);
-
-  return {
-    ...user,
-    briefingSettings:
-      user.briefingSettings || defaultBriefingSettings,
-  };
 }
 
 export async function updateCurrentUser(oldEmail: string, updatedUser: User) {
   const users = await getUsers();
 
+  const normalizedUpdatedUser = normalizeUser(updatedUser);
+
   const emailUsedByAnotherUser = users.some(
     (user) =>
-      user.email.toLowerCase() === updatedUser.email.toLowerCase() &&
+      user.email.toLowerCase() === normalizedUpdatedUser.email.toLowerCase() &&
       user.email.toLowerCase() !== oldEmail.toLowerCase()
   );
 
@@ -130,16 +230,21 @@ export async function updateCurrentUser(oldEmail: string, updatedUser: User) {
 
   const updatedUsers = users.map((user) =>
     user.email.toLowerCase() === oldEmail.toLowerCase()
-      ? updatedUser
+      ? normalizedUpdatedUser
       : user
   );
 
   await AsyncStorage.setItem(USERS_KEY, JSON.stringify(updatedUsers));
-  await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedUser));
+
+  await AsyncStorage.setItem(
+    CURRENT_USER_KEY,
+    JSON.stringify(normalizedUpdatedUser)
+  );
 
   return {
     success: true,
     message: 'Profile updated successfully.',
+    user: normalizedUpdatedUser,
   };
 }
 
@@ -157,7 +262,11 @@ export async function updateBriefingSettings(
 
   const updatedUser: User = {
     ...currentUser,
-    briefingSettings: updatedSettings,
+    briefingSettings: {
+      ...defaultBriefingSettings,
+      ...updatedSettings,
+    },
+    googleAccessToken: currentUser.googleAccessToken,
   };
 
   const users = await getUsers();
@@ -174,6 +283,7 @@ export async function updateBriefingSettings(
   return {
     success: true,
     message: 'Briefing settings updated successfully.',
+    user: updatedUser,
   };
 }
 

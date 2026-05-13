@@ -8,12 +8,12 @@ import {
 } from 'react-native';
 
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
+import * as Linking from 'expo-linking';
 
-import { registerUser } from '@/database/authDatabase';
+import { loginWithGoogle, registerUser } from '@/database/authDatabase';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -22,37 +22,9 @@ export default function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId:
-      '383196573436-pj7bsfd2t07qvaufh9nd6898g8701osn.apps.googleusercontent.com',
-  });
-
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { authentication } = response;
-
-      console.log('Google Access Token:', authentication?.accessToken);
-
-      Alert.alert(
-        'Google Sign Up Successful',
-        'Your Google account has been connected.'
-      );
-
-      router.replace('/(tabs)');
-    }
-  }, [response]);
-
   async function handleSignUp() {
     if (!fullName || !email || !password) {
       Alert.alert('Missing Fields', 'Please fill all fields.');
-      return;
-    }
-
-    if (password.length < 6) {
-      Alert.alert(
-        'Weak Password',
-        'Password must be at least 6 characters.'
-      );
       return;
     }
 
@@ -67,20 +39,67 @@ export default function SignUpScreen() {
       return;
     }
 
-    Alert.alert(
-      'Account Created',
-      'Your account has been created successfully.',
-      [
-        {
-          text: 'Continue',
-          onPress: () => router.replace('/welcome/sign-in'),
-        },
-      ]
-    );
+    router.replace('/(tabs)');
   }
 
-  function handleGoogleSignUp() {
-    promptAsync();
+  async function handleGoogleSignIn() {
+    try {
+      const redirectUri = Linking.createURL('google-auth-success', {
+        scheme: 'sumupmobile',
+      });
+
+      const loginUrl =
+        `https://helpful-radiation-creation.ngrok-free.dev/api/google-auth/login?appRedirectUri=${encodeURIComponent(
+          redirectUri
+        )}`;
+
+      const result = await WebBrowser.openAuthSessionAsync(
+        loginUrl,
+        redirectUri
+      );
+
+      if (result.type !== 'success') {
+        Alert.alert(
+          'Google Connection',
+          'Google connection was cancelled or could not be completed.'
+        );
+        return;
+      }
+
+      const url = new URL(result.url);
+
+      const googleEmail = url.searchParams.get('email');
+      const googleName = url.searchParams.get('name');
+      const accessToken = url.searchParams.get('access_token');
+
+      if (!googleEmail || !accessToken) {
+        Alert.alert(
+          'Google Sign Up Failed',
+          'Google account information could not be received.'
+        );
+        return;
+      }
+
+      const loginResult = await loginWithGoogle({
+        fullName: googleName || 'Google User',
+        email: googleEmail,
+        googleAccessToken: accessToken,
+      });
+
+      if (!loginResult.success) {
+        Alert.alert('Google Sign Up Failed', loginResult.message);
+        return;
+      }
+
+      router.replace('/(tabs)');
+    } catch (error) {
+      console.log('Google Sign Up Error:', error);
+
+      Alert.alert(
+        'Google Sign Up Failed',
+        'An error occurred while signing up with Google.'
+      );
+    }
   }
 
   return (
@@ -141,17 +160,8 @@ export default function SignUpScreen() {
             <View style={styles.divider} />
           </View>
 
-          <Pressable
-            style={[
-              styles.googleButton,
-              !request && styles.disabledButton,
-            ]}
-            disabled={!request}
-            onPress={handleGoogleSignUp}
-          >
-            <Text style={styles.googleButtonText}>
-              Continue with Google
-            </Text>
+          <Pressable style={styles.googleButton} onPress={handleGoogleSignIn}>
+            <Text style={styles.googleButtonText}>Continue with Google</Text>
           </Pressable>
         </View>
 

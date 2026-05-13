@@ -8,7 +8,10 @@ import {
   View,
 } from 'react-native';
 
-import { getGoogleData, getWeatherData } from '@/services/api';
+import {
+  getGoogleData,
+  getWeatherData,
+} from '@/services/api';
 
 type DailyBriefing = {
   title: string;
@@ -37,27 +40,39 @@ export default function HomeScreen() {
   const [weatherMessage, setWeatherMessage] = useState('');
   const [googleMessage, setGoogleMessage] = useState('');
 
+  const [weatherSource, setWeatherSource] =
+    useState<DataSource['status']>('Not Connected');
+
+  const [googleSource, setGoogleSource] =
+    useState<DataSource['status']>('Not Connected');
+
+  async function fetchWeather() {
+    try {
+      const data = await getWeatherData();
+
+      setWeatherMessage(data.message ?? 'Weather data loaded.');
+      setWeatherSource(data.success ? 'Connected' : 'Error');
+    } catch (error) {
+      console.log('Weather API Error:', error);
+      setWeatherMessage('Weather service connection failed.');
+      setWeatherSource('Error');
+    }
+  }
+
+  async function fetchGoogleData() {
+    try {
+      const data = await getGoogleData();
+
+      setGoogleMessage(data.message ?? 'Google data loaded.');
+      setGoogleSource(data.success ? 'Connected' : 'Not Connected');
+    } catch (error) {
+      console.log('Google API Error:', error);
+      setGoogleMessage('Google service connection failed.');
+      setGoogleSource('Error');
+    }
+  }
+
   useEffect(() => {
-    async function fetchWeather() {
-      try {
-        const data = await getWeatherData();
-        setWeatherMessage(data.message ?? 'Weather data loaded.');
-      } catch (error) {
-        console.log('Weather API Error:', error);
-        setWeatherMessage('Weather service connection failed.');
-      }
-    }
-
-    async function fetchGoogleData() {
-      try {
-        const data = await getGoogleData();
-        setGoogleMessage(data.message ?? 'Google data loaded.');
-      } catch (error) {
-        console.log('Google API Error:', error);
-        setGoogleMessage('Google service connection failed.');
-      }
-    }
-
     fetchWeather();
     fetchGoogleData();
   }, []);
@@ -67,14 +82,14 @@ export default function HomeScreen() {
       id: 1,
       name: 'Weather',
       provider: 'OpenWeather API',
-      status: weatherMessage ? 'Error' : 'Not Connected',
+      status: weatherSource,
       message: weatherMessage || 'Waiting for weather service response.',
     },
     {
       id: 2,
       name: 'Calendar & Tasks',
       provider: 'Google Calendar',
-      status: googleMessage ? 'Error' : 'Not Connected',
+      status: googleSource,
       message:
         googleMessage || 'Waiting for Google Calendar and Tasks response.',
     },

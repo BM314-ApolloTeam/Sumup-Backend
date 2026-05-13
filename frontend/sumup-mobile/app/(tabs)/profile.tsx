@@ -1,6 +1,6 @@
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import ProfileOptionCard from '@/components/ProfileOptionCard';
 import { getCurrentUser, logoutUser, User } from '@/database/authDatabase';
@@ -29,41 +29,36 @@ export default function ProfileScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      async function loadUser() {
+      async function loadProfileData() {
         const user = await getCurrentUser();
         setUserProfile(user);
+
+        const weatherData = await getWeatherData();
+
+        if (weatherData?.success === false) {
+          setWeatherStatus('Error');
+        } else {
+          setWeatherStatus('Connected');
+        }
+
+        if (!user?.googleAccessToken) {
+          setGoogleStatus('Waiting');
+          return;
+        }
+
+        const googleData = await getGoogleData();
+
+        if (googleData?.success === false) {
+          setGoogleStatus('Error');
+          return;
+        }
+
+        setGoogleStatus('Synced');
       }
 
-      loadUser();
+      loadProfileData();
     }, [])
   );
-
-  useEffect(() => {
-    async function checkWeatherStatus() {
-      const data = await getWeatherData();
-
-      if (data?.success === false) {
-        setWeatherStatus('Error');
-        return;
-      }
-
-      setWeatherStatus('Connected');
-    }
-
-    async function checkGoogleStatus() {
-      const data = await getGoogleData();
-
-      if (data?.success === false) {
-        setGoogleStatus('Error');
-        return;
-      }
-
-      setGoogleStatus('Synced');
-    }
-
-    checkWeatherStatus();
-    checkGoogleStatus();
-  }, []);
 
   function handleLogout() {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -86,8 +81,8 @@ export default function ProfileScreen() {
   const email = userProfile?.email || 'guest@example.com';
 
   const nameParts = fullName.trim().split(' ');
-  const firstInitial = nameParts[0]?.[0] || 'G';
-  const secondInitial = nameParts[1]?.[0] || 'U';
+  const firstInitial = nameParts[0]?.[0]?.toUpperCase() || 'G';
+  const secondInitial = nameParts[1]?.[0]?.toUpperCase() || 'U';
 
   const briefingSettings: BriefingSetting[] = [
     {
@@ -103,7 +98,7 @@ export default function ProfileScreen() {
     {
       id: 3,
       title: 'Notifications',
-      value: userProfile?.briefingSettings?.notifications || 'Enabled',
+      value: userProfile?.briefingSettings?.notifications || 'Disabled',
     },
   ];
 
@@ -213,7 +208,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 14,
-
     shadowColor: '#2563EB',
     shadowOffset: {
       width: 0,
@@ -275,7 +269,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     marginTop: 10,
-
     shadowColor: '#2563EB',
     shadowOffset: {
       width: 0,

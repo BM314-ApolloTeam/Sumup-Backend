@@ -1,25 +1,37 @@
-@Sumup.API_HostAddress = http://localhost:5039
+@http://localhost:5039 = http://localhost:5039
 
-GET {{Sumup.API_HostAddress}}/weatherforecast/
+GET {{http://localhost:5039}}/weatherforecast/
 Accept: application/json
 
 ###
 
-POST {{Sumup.API_HostAddress}}/api/user/create-test-user
+POST {{http://localhost:5039}}/api/user/create-test-user
 Accept: application/json
 
 ###
 
-POST {{Sumup.API_HostAddress}}/api/user/settings
+POST {{http://localhost:5039}}/api/user/settings
 Content-Type: application/json
 
 {
-  "userId": "",
-  "wakeUpTime": "21:07:00",
-  "googleRefreshToken": "Token Bilgisi",
+  "userId": "cf8d3a56-fead-4f60-985a-981d9d9dfabc",
+  "wakeUpTime": "16:34:00",
+  "googleRefreshToken": "1//03XpwujznJe7oCgYIARAAGAMSNwF-L9IrUvkirnUrwe-6LjzRSF-GbNOm-Hn3ktZfHV0Wwxv7fxmGclyhE19KSM3w3Dn2EG8xhpY",
   "preferences": "Kısa ve öz olsun.Önemli şeyleri özetle ",
   "voiceId": "21m00Tcm4TlvDq8ikWAM",
   "timeZoneId": "Turkey Standard Time"
 }
 
 ###
+POST https://oauth2.googleapis.com/token
+Content-Type: application/x-www-form-urlencoded
+
+code=4/0AeoWuM_I_TuRDF3g85pleJGINZnO5n46DcMmRdJw1OeDHPfvinkf_GhYMZUal-8zHAnygQ&client_id=129471659726-l3mq4t8n72qpff6amis0cpc9a3q4r2nr.apps.googleusercontent.com&client_secret=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&redirect_uri=http://localhost:5039/api/google-auth/callback&grant_type=authorization_code
+
+###
+
+###
+
+GET http://localhost:5039/api/test/daily-summary?googleAccessToken=ya29.a0AQvPyIOuaXYEZOENaS_JowzY8RnKWn3Cymt2EeHarInFr3vL1_6I-o2RBcvueGa3R7-l4vhhESBxkHPIn4b--vODE8e7j9-74yDkbifc3Ihm7F3k0dTfbcTQMKFD2kV65QqpHKXfyFjQDu2Dme1VVPo9z7et03PljX3GmEHoe3XqRArZwFLJUUoNl7rP9uckNcpD4VIaCgYKAbASARMSFQHGX2Mi3-j0Ru9UM8MStTHca96IUA0206&city=Ankara
+
+Accept: application/json
